@@ -1,11 +1,11 @@
 {
     "id": "dmsLenovoBatterySettings",
-    "name": "DMS Lenovo Battery Settings",
+    "name": "Lenovo Battery Settings",
     "description": "Manage conservation mode and charge type for Lenovo laptops",
     "version": "1.0.0",
     "license": "GNU GPLv3",
     "author": "neoscaler",
-    "icon": "battery_alert",
+    "icon": "battery_profile",
     "type": "widget",
     "component": "./DmsLenovoBatteryWidget.qml",
     "settings": "./DmsLenovoBatterySettings.qml",
