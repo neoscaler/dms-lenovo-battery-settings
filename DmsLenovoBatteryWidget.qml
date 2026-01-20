@@ -18,7 +18,13 @@ PluginComponent {
         id: hardwareCheck
         command: ["test", "-d", root.lenovoAcpiId]
         running: true
-        onExited: (code) => { root.hardwareExists = (code === 0) }
+        onExited: (code) => { 
+            if (code === 0) {
+                root.hardwareExists = (code === 0) 
+            } else {
+                ToastService.showError("Lenovo ACPI device " + root.lenovoAcpiId + " not found.");
+            }
+        }
     }
 
     Timer {
@@ -61,13 +67,27 @@ PluginComponent {
     Process {
         id: toggleProcess
 
-        onExited: (code, status) => {
-            statusCheck.caller = "toggle";
-            statusCheck.running = true;
+        onExited: (code) => {
+            if (code === 0) {
+                statusCheck.caller = "toggle"; 
+                statusCheck.running = true;
+            } else {
+                if (code === 126 || code === 127) {
+                    ToastService.showError("Authenticaton error. Command aborted or no graphical polkit agent is running.");
+                } else {
+                    ToastService.showError("Unknown error toggling battery setting. Code: " + code)
+                }
+                statusCheck.caller = "";
+            }
         }
     }
 
     function toggleConservationMode() {
+        if (toggleProcess.running || statusCheck.running) {
+                console.log("Process already running, ignoring click.");
+                return; 
+        }
+
         const targetValue = root.isConservationModeActive ? "0" : "1"
         toggleProcess.command = ["pkexec", "sh", "-c", `echo ${targetValue} > ${root.lenovoAcpiId}${root.conservationModeAcpiNode}`];
         toggleProcess.running = true;
@@ -89,7 +109,7 @@ PluginComponent {
                     size: Theme.iconSize - 6
                     color: root.isConservationModeActive ? Theme.primary : Theme.surfaceText
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: root.showIcon
+                    visible: root.hardwareExists
                 }
             }
         }
@@ -97,8 +117,8 @@ PluginComponent {
 
     verticalBarPill: Component {
         MouseArea {
-            implicitWidth: contentRow.implicitWidth
-            implicitHeight: contentRow.implicitHeight
+            implicitWidth: contentColumn.implicitWidth
+            implicitHeight: contentColumn.implicitHeight
             cursorShape: Qt.PointingHandCursor
             onClicked: toggleConservationMode()
 
@@ -111,7 +131,7 @@ PluginComponent {
                     size: Theme.iconSize - 6
                     color: root.isConservationModeActive ? Theme.primary : Theme.surfaceText
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: root.showIcon
+                    visible: root.hardwareExists
                 }
             }
         }
