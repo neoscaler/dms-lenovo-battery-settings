@@ -14,13 +14,154 @@ PluginComponent {
     property string conservationModeAcpiNode: "/conservation_mode"
     property bool hardwareExists: false
 
+    // Control Center Widget Properties
+    ccWidgetIcon: {
+        if (!root.hardwareExists)
+            return "battery_alert";
+        return root.isConservationModeActive ? "battery_android_frame_shield" : "battery_android_shield";
+    }
+    ccWidgetPrimaryText: "Battery Conservation"
+    ccWidgetSecondaryText: {
+        if (!root.hardwareExists)
+            return "Hardware not found";
+        return root.isConservationModeActive ? "Active" : "Inactive";
+    }
+    ccWidgetIsActive: root.hardwareExists && root.isConservationModeActive
+    onCcWidgetToggled: {
+        if (root.hardwareExists) {
+            root.toggleConservationMode();
+        } else {
+            ToastService.showError("Lenovo ACPI device not found");
+        }
+    }
+    ccDetailHeight: 280
+    ccDetailContent: Component {
+        Column {
+            width: parent.width
+            spacing: Theme.spacingM
+            padding: Theme.spacingM
+            StyledText {
+                width: parent.width
+                text: "Battery Conservation Mode"
+                font.pixelSize: Theme.fontSizeLarge
+                font.weight: Font.Bold
+                color: Theme.surfaceText
+            }
+            StyledRect {
+                width: parent.width
+                height: 1
+                color: Theme.surfaceVariant
+            }
+            Row {
+                width: parent.width
+                spacing: Theme.spacingS
+                DankIcon {
+                    name: root.hardwareExists ? (root.isConservationModeActive ? "check_circle" : "cancel") : "error"
+                    size: Theme.iconSize
+                    color: root.hardwareExists ? (root.isConservationModeActive ? Theme.success : Theme.error) : Theme.error
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Column {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 2
+                    StyledText {
+                        text: root.hardwareExists ? (root.isConservationModeActive ? "Conservation Mode Enabled" : "Conservation Mode Disabled") : "Hardware Not Detected"
+                        font.pixelSize: Theme.fontSizeMedium
+                        font.weight: Font.Medium
+                        color: Theme.surfaceText
+                    }
+                    StyledText {
+                        text: root.hardwareExists ? "Battery charging limited to ~60%" : "Lenovo VPC2004 ACPI device not found"
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.surfaceVariantText
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+            StyledRect {
+                width: parent.width
+                height: 1
+                color: Theme.surfaceVariant
+            }
+            StyledText {
+                text: "Details"
+                font.pixelSize: Theme.fontSizeMedium
+                font.weight: Font.DemiBold
+                color: Theme.surfaceText
+            }
+            Row {
+                spacing: Theme.spacingS
+                StyledText {
+                    text: "ACPI device:"
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.surfaceVariantText
+                }
+                StyledText {
+                    text: root.lenovoAcpiId
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Font.Medium
+                    color: Theme.surfaceText
+                }
+            }
+            Row {
+                spacing: Theme.spacingS
+                StyledText {
+                    text: "Hardware detected:"
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.surfaceVariantText
+                }
+                DankIcon {
+                    name: root.hardwareExists ? "check_circle" : "cancel"
+                    size: 16
+                    color: root.hardwareExists ? Theme.success : Theme.error
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+            Row {
+                visible: root.hardwareExists
+                spacing: Theme.spacingS
+                StyledText {
+                    text: "Current mode:"
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.surfaceVariantText
+                }
+                StyledText {
+                    text: root.isConservationModeActive ? "Limited (60%)" : "Normal (100%)"
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.weight: Font.Medium
+                    color: root.isConservationModeActive ? Theme.primary : Theme.surfaceText
+                }
+            }
+            Item {
+                width: 1
+                height: Theme.spacingS
+                visible: false
+            }
+            DankButton {
+                width: parent.width
+                text: root.isConservationModeActive ? "Disable Conservation Mode" : "Enable Conservation Mode"
+                iconName: root.isConservationModeActive ? "battery_android_frame_shield" : "battery_android_shield"
+                enabled: root.hardwareExists
+                onClicked: root.toggleConservationMode()
+            }
+            StyledText {
+                visible: !root.hardwareExists
+                width: parent.width
+                text: "Note: This feature is only available on supported Lenovo laptops."
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.surfaceVariantText
+                wrapMode: Text.WordWrap
+            }
+        }
+    }
+
     Process {
         id: hardwareCheck
         command: ["test", "-d", root.lenovoAcpiId]
         running: true
-        onExited: (code) => { 
+        onExited: code => {
             if (code === 0) {
-                root.hardwareExists = (code === 0) 
+                root.hardwareExists = (code === 0);
             } else {
                 ToastService.showError("Lenovo ACPI device " + root.lenovoAcpiId + " not found.");
             }
@@ -67,15 +208,15 @@ PluginComponent {
     Process {
         id: toggleProcess
 
-        onExited: (code) => {
+        onExited: code => {
             if (code === 0) {
-                statusCheck.caller = "toggle"; 
+                statusCheck.caller = "toggle";
                 statusCheck.running = true;
             } else {
                 if (code === 126 || code === 127) {
                     ToastService.showError("Authenticaton error. Command aborted or no graphical polkit agent is running.");
                 } else {
-                    ToastService.showError("Unknown error toggling battery setting. Code: " + code)
+                    ToastService.showError("Unknown error toggling battery setting. Code: " + code);
                 }
                 statusCheck.caller = "";
             }
@@ -84,11 +225,11 @@ PluginComponent {
 
     function toggleConservationMode() {
         if (toggleProcess.running || statusCheck.running) {
-                console.log("Process already running, ignoring click.");
-                return; 
+            console.log("Process already running, ignoring click.");
+            return;
         }
 
-        const targetValue = root.isConservationModeActive ? "0" : "1"
+        const targetValue = root.isConservationModeActive ? "0" : "1";
         toggleProcess.command = ["pkexec", "sh", "-c", `echo ${targetValue} > ${root.lenovoAcpiId}${root.conservationModeAcpiNode}`];
         toggleProcess.running = true;
     }
