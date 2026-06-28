@@ -1,13 +1,14 @@
 {
-    "id": "dmsLenovoBatterySettings",
-    "name": "Lenovo Battery Settings",
-    "description": "Manage Lenovo battery settings like conservation mode",
-    "version": "1.0.0",
-    "license": "GNU GPLv3",
-    "author": "neoscaler",
-    "icon": "battery_profile",
-    "type": "widget",
-    "component": "./DmsLenovoBatteryWidget.qml",
-    "settings": "./DmsLenovoBatterySettings.qml",
-    "permissions": ["settings_read", "settings_write"]
+	"id": "dmsLenovoBatterySettings",
+	"name": "Lenovo Battery Settings",
+	"description": "Manage Lenovo battery settings like conservation mode",
+	"version": "1.0.1",
+	"license": "GNU GPLv3",
+	"author": "neoscaler",
+	"icon": "battery_profile",
+	"type": "widget",
+	"component": "./DmsLenovoBatteryWidget.qml",
+	"settings": "./DmsLenovoBatterySettings.qml",
+	"capabilities": ["dankbar-widget", "control-center"],
+	"permissions": ["settings_read", "settings_write"]
 }
