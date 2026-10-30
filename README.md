@@ -1,6 +1,6 @@
 # dms-lenovo-battery-settings
 
-Plugin to see the status of following Lenovo battery settings in [DankBar](https://github.com/AvengeMedia/DankMaterialShell) and quickly change it:
+Plugin to see the status of following Lenovo battery settings in [Dux Shell](https://github.com/duxlabs-dev/dux-shell) and quickly change it:
 
 * conservation mode (on, off)
     * Charges only to 60-80 % to preserve battery health

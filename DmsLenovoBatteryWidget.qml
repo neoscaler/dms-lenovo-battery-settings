@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Services
+import qs.DCommon.Widgets
 import qs.Widgets
 import qs.Modules.Plugins
 import Quickshell.Io
@@ -55,7 +56,7 @@ PluginComponent {
             Row {
                 width: parent.width
                 spacing: Theme.spacingS
-                DankIcon {
+                DIcon {
                     name: root.hardwareExists ? (root.isConservationModeActive ? "check_circle" : "cancel") : "error"
                     size: Theme.iconSize
                     color: root.hardwareExists ? (root.isConservationModeActive ? Theme.success : Theme.error) : Theme.error
@@ -110,7 +111,7 @@ PluginComponent {
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceVariantText
                 }
-                DankIcon {
+                DIcon {
                     name: root.hardwareExists ? "check_circle" : "cancel"
                     size: 16
                     color: root.hardwareExists ? Theme.success : Theme.error
@@ -137,7 +138,7 @@ PluginComponent {
                 height: Theme.spacingS
                 visible: false
             }
-            DankButton {
+            DButton {
                 width: parent.width
                 text: root.isConservationModeActive ? "Disable Conservation Mode" : "Enable Conservation Mode"
                 iconName: root.isConservationModeActive ? "battery_android_frame_shield" : "battery_android_shield"
@@ -238,7 +239,7 @@ PluginComponent {
                 id: contentRow
                 spacing: Theme.spacingS
 
-                DankIcon {
+                DIcon {
                     name: root.isConservationModeActive ? "battery_android_frame_shield" : "battery_android_shield"
                     size: Theme.iconSize - 6
                     color: root.isConservationModeActive ? Theme.primary : Theme.surfaceText
@@ -260,7 +261,7 @@ PluginComponent {
                 id: contentColumn
                 spacing: Theme.spacingS
 
-                DankIcon {
+                DIcon {
                     name: root.isConservationModeActive ? "battery_android_frame_shield" : "battery_android_shield"
                     size: Theme.iconSize - 6
                     color: root.isConservationModeActive ? Theme.primary : Theme.surfaceText
