@@ -2,7 +2,7 @@
 	"id": "dmsLenovoBatterySettings",
 	"name": "Lenovo Battery Settings",
 	"description": "Manage Lenovo battery settings like conservation mode",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"license": "GNU GPLv3",
 	"author": "neoscaler",
 	"icon": "battery_profile",
@@ -10,5 +10,6 @@
 	"component": "./DmsLenovoBatteryWidget.qml",
 	"settings": "./DmsLenovoBatterySettings.qml",
 	"capabilities": ["dankbar-widget", "control-center"],
+	"requires_dms": ">=2.0.0",
 	"permissions": ["settings_read", "settings_write"]
 }
