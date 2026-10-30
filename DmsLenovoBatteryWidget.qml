@@ -180,58 +180,51 @@ PluginComponent {
         command: ["cat", root.lenovoAcpiId + root.conservationModeAcpiNode]
         running: root.hardwareExists
 
-        property string caller: ""
+        property string pendingTarget: ""
 
         stdout: StdioCollector {
             id: outputCollector
             onStreamFinished: {
-                if (this.text == 0) {
+                const value = this.text.trim();
+                if (value === "0") {
                     isConservationModeActive = false;
-                } else if (this.text == 1) {
+                } else if (value === "1") {
                     isConservationModeActive = true;
                 } else {
                     ToastService.showError("Can't determine conservation mode status.");
+                    statusCheck.pendingTarget = "";
+                    statusCheck.running = false;
+                    return;
+                }
+                if (statusCheck.pendingTarget !== "" && value === statusCheck.pendingTarget) {
+                    ToastService.showInfo(isConservationModeActive ? "Conservation mode enabled" : "Conservation mode disabled");
+                    statusCheck.pendingTarget = "";
                 }
                 statusCheck.running = false;
-            }
-        }
-
-        onExited: {
-            if (caller == "toggle") {
-                const output = root.isConservationModeActive ? "Conservation mode enabled" : "Conservation mode disabled";
-                ToastService.showInfo(output);
-            }
-            caller = "";
-        }
-    }
-
-    Process {
-        id: toggleProcess
-
-        onExited: code => {
-            if (code === 0) {
-                statusCheck.caller = "toggle";
-                statusCheck.running = true;
-            } else {
-                if (code === 126 || code === 127) {
-                    ToastService.showError("Authenticaton error. Command aborted or no graphical polkit agent is running.");
-                } else {
-                    ToastService.showError("Unknown error toggling battery setting. Code: " + code);
-                }
-                statusCheck.caller = "";
             }
         }
     }
 
     function toggleConservationMode() {
-        if (toggleProcess.running || statusCheck.running) {
+        if (statusCheck.running || statusCheck.pendingTarget !== "") {
             console.log("Process already running, ignoring click.");
             return;
         }
 
         const targetValue = root.isConservationModeActive ? "0" : "1";
-        toggleProcess.command = ["pkexec", "sh", "-c", `echo ${targetValue} > ${root.lenovoAcpiId}${root.conservationModeAcpiNode}`];
-        toggleProcess.running = true;
+        statusCheck.pendingTarget = targetValue;
+        Proc.runCommand("dmsLenovoBatterySettings.toggleConservationMode", ["pkexec", "sh", "-c", `echo ${targetValue} > ${root.lenovoAcpiId}${root.conservationModeAcpiNode}`], (output, exitCode) => {
+            if (exitCode === 0) {
+                statusCheck.running = true;
+                return;
+            }
+            statusCheck.pendingTarget = "";
+            if (exitCode === 126 || exitCode === 127) {
+                ToastService.showError("Authentication error. Command aborted or no graphical polkit agent is running.");
+            } else {
+                ToastService.showError("Unknown error toggling battery setting. Code: " + exitCode);
+            }
+        });
     }
 
     horizontalBarPill: Component {
